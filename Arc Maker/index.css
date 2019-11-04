@@ -53,6 +53,17 @@ h1 {
   text-align: center;
 }
 
+#buttonGroup div {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+#buttonGroup h3 {
+  margin: 0.5rem 0;
+}
+
 button {
   width: 10rem;
   height: 2.5rem;

@@ -12,6 +12,13 @@ var endAngle = 2;
 var counterClockwise = true;
 var lineWidth = 10;
 
+var arrInputs = [inputXPos, inputYPos, inputRadius, inputStartAngle, inputEndAngle, inputLineWidth];
+var arrInputValues = [xp, yp, radius, startAngle, endAngle, lineWidth];
+for (var i = 0; i < arrInputs.length; i++) {
+  arrInputs[i].value = arrInputValues[i];
+  arrInputs[i].addEventListener("input", updateGraphics);
+}
+
 function draw() {
   context.beginPath();
   context.arc(xp, yp, radius, startAngle, endAngle, counterClockwise);
@@ -28,6 +35,7 @@ function updateGraphics() {
   startAngle = inputStartAngle.value;
   endAngle = inputEndAngle.value;
   lineWidth = inputLineWidth.value;
+  updateText();
   draw();
 }
 
@@ -35,17 +43,33 @@ function clear() {
   context.clearRect(0, 0, canvas.width, canvas.height);
 }
 
-var arrInputs = [inputXPos, inputYPos, inputRadius, inputStartAngle, inputEndAngle];
-for (var i = 0; i < arrInputs.length; i++) {
-  arrInputs[i].addEventListener("input", updateGraphics);
+function updateText() {
+  if (counterClockwise) {
+    txtClockwise.innerHTML = "True";
+  } else {
+    txtClockwise.innerHTML = "False";
+  }
+
+  if (xp == canvas.width / 2 && yp == canvas.height / 2) {
+    txtCentered.innerHTML = "True";
+  } else {
+    txtCentered.innerHTML = "False";
+  }
 }
 
 btnCenter.onclick = function() {
-  console.log("co");
   inputXPos.value = canvas.width / 2;
   inputYPos.value = canvas.height / 2;
-  clear();
-  draw();
+  updateGraphics();
+}
+
+btnClockwise.onclick = function() {
+  if (counterClockwise) {
+    counterClockwise = false;
+  } else {
+    counterClockwise = true;
+  }
+  updateGraphics();
 }
 
 draw();
