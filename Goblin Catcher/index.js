@@ -49,8 +49,6 @@ function checkLoaded() {
   ) {
     loaded = true;
     console.log("loaded.");
-    reset();
-    render();
   } else {
     console.log("Loading~");
   }
@@ -63,7 +61,12 @@ function checkLoaded() {
 var player = {
   speed: 256, // pixels per second
   x: 0,
-  y: 0
+  y: 0,
+  scale: 2,
+  width: playerSprite.width / 4,
+  height: playerSprite.height / 4,
+  frameX: 0,
+  frameY: 0
 };
 
 var goblin = {
@@ -92,8 +95,8 @@ addEventListener("keyup", function(e){
 // Game Reset //
 
 var reset = function() {
-  player.x = canvas.width / 2;
-  player.y = canvas.height / 2;
+  if (player.x === 0) player.x = canvas.width / 2;
+  if (player.y === 0) player.y = canvas.height / 2;
 
   goblin.x = mathRandom(canvas.width - 50);
   goblin.y = mathRandom(canvas.height - 50);
@@ -103,11 +106,58 @@ var reset = function() {
 
 // UPDATE GAME STATE //
 
+var animating = false;
+
 var update = function(modifier) {
-  if (87 in keysDown) player.y -= player.speed * modifier; // UP
-  if (83 in keysDown) player.y += player.speed * modifier; // DOWN
-  if (65 in keysDown) player.x -= player.speed * modifier; // LEFT
-  if (68 in keysDown) player.x += player.speed * modifier; // RIGHT
+  if (Object.keys(keysDown).length == 2) {
+    if (87 in keysDown && 68 in keysDown) { // NORTH EAST
+      selectAnimation(3);
+      player.y -= player.speed * (modifier / 1.3);
+      player.x += player.speed * (modifier / 1.3);
+    }
+    if (83 in keysDown && 68 in keysDown) { // SOUTH EAST
+      selectAnimation(3);
+      player.y += player.speed * (modifier / 1.3);
+      player.x += player.speed * (modifier / 1.3);
+    }
+    if (65 in keysDown && 87 in keysDown) { // NORTH WEST
+      selectAnimation(2);
+      player.y -= player.speed * (modifier / 1.3);
+      player.x -= player.speed * (modifier / 1.3);
+    }
+    if (65 in keysDown && 83 in keysDown) { // SOUTH WEST
+      selectAnimation(2);
+      player.y += player.speed * (modifier / 1.3);
+      player.x -= player.speed * (modifier / 1.3);
+    }
+  } else if (Object.keys(keysDown).length == 1) {
+    if (87 in keysDown) {
+      selectAnimation(4);
+      player.y -= player.speed * modifier; // UP
+    }
+    if (83 in keysDown) {
+      selectAnimation(1);
+      player.y += player.speed * modifier; // DOWN
+    }
+    if (65 in keysDown) {
+      player.x -= player.speed * modifier; // LEFT
+      selectAnimation(2)
+    }
+    if (68 in keysDown) {
+      player.x += player.speed * modifier; // RIGHT
+      selectAnimation(3);
+    }
+  } else {
+    player.frameX = 0;
+    player.frameY = 0;
+  }
+
+
+  // console.log(player.x);
+  if (player.x < -60) player.x = 600;
+  if (player.x > 600) player.x = -60;
+  if (player.y < -60) player.y = 600;
+  if (player.y > 600) player.y = -60;
 
   if (player.x <= (goblin.x + 32)
       && goblin.x <= (player.x + 32)
@@ -119,15 +169,36 @@ var update = function(modifier) {
   }
 }
 
+function selectAnimation(anim) {
+  if (!animating) {
+    animating = true;
+    setTimeout(function(){
+      animating = false;
+    }, 100);
+    switch(anim) {
+      case 1:
+        player.frameY = 0;
+        break;
+      case 2:
+        player.frameY = 128;
+        break;
+      case 3:
+        player.frameY = 128 * 2;
+        break;
+      case 4:
+        player.frameY = 128 * 3;
+        break;
+    }
+    player.frameX += 128;
+    if (player.frameX >= 512) player.frameX = 0;
+  }
+}
+
 ///////////////////////////////////////////////////////////////
 
 // RENDER GRAPHICS //
 
 var render = function() {
-  var scale = 2;
-  var playerWidth = playerSprite.width / 4;
-  var playerHeight = playerSprite.height / 4;
-
   var goblinWidth = goblinSprite.width / 12;
   var goblinHeight = goblinSprite.height / 8;
   var goblinScale = 1.25;
@@ -137,7 +208,7 @@ var render = function() {
 
   if (loaded) {
     ctx.drawImage(bkgd, 0, 0, canvas.width, canvas.height);
-    ctx.drawImage(playerSprite, 0, 0, playerWidth, playerHeight, player.x, player.y, playerWidth / scale, playerHeight / scale);
+    drawFrame();
     ctx.drawImage(goblinSprite, 0, 0, goblinWidth, goblinHeight, goblin.x, goblin.y, goblinWidth * goblinScale, goblinHeight * goblinScale);
   }
 
@@ -148,6 +219,13 @@ var render = function() {
   ctx.fillText(`Goblins Caught: ${caught}`, 10, 10);
   ctx.strokeStyle = "rgb(0, 0, 0)";
   ctx.strokeText(`Goblins Caught: ${caught}`, 10, 10);
+}
+
+function drawFrame() {
+  ctx.drawImage(playerSprite, player.frameX, player.frameY,
+                player.width, player.height,
+                player.x, player.y,
+                player.width / player.scale, player.height / player.scale,);
 }
 
 ///////////////////////////////////////////////////////////////
@@ -162,7 +240,6 @@ var main = function() {
   render();
 
   then = now;
-  console.log("then:" + delta);
   requestAnimationFrame(main);
 }
 
