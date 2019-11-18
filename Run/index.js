@@ -39,10 +39,15 @@ function checkLoaded() {
   }
 }
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// Game Start Function //
+
 function startGame() {
 
-  // height 960px
-  // width 9856px
+  //////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  // Key Event Recorder //
 
   var keysDown = {};
 
@@ -54,6 +59,10 @@ function startGame() {
     delete keysDown[e.keyCode];
   }, false);
 
+  //////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  // Character Objects //
+
   var player = {
     x: 0,
     y: 368,
@@ -64,43 +73,83 @@ function startGame() {
     sprite: runRight
   };
 
-  function draw() {
+  //////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  // Graphics //
+
+  function render() {
     ctx.drawImage(bkgd, 0, 0, canvas.width, canvas.height);
     ctx.drawImage(player.sprite, player.frameX, 0,
                   player.width, player.height,
                   player.x, player.y, player.width / player.scale, player.height / player.scale);
   }
 
-  function update() {
+//////////////////////////////////////////////////////////////////////////////////////////////////////
 
+  // Sets the movespeed of all key directions //
+  var moveSpeed = 2;
+  // checks if an animation is playing //
+  var animating = false;
+
+  function update() {
+    // Key Controls //
+
+    // If unassigned keys are pressed, only idle animation is played//
     if (!(68 in keysDown) && !(65 in keysDown)) {
       player.sprite = idle;
-      player.frameX += 1792/2;
-      if (player.frameX >= 1792) player.frameX = 0;
+      if (!animating) animate(500);
     }
 
+    // If "D" is pressed, run right animation is played//
     if (68 in keysDown) {
+      if (player.sprite == idle) animating = false;
       player.sprite = runRight;
-      player.frameX += 896;
-      if (player.frameX >= 9856) player.frameX = 0;
-      player.x += 1.2;
+      player.x += moveSpeed;
+      if (!animating) animate(52);
     }
 
+    // If "A" is pressed, run left animation is played//
     if (65 in keysDown) {
       player.sprite = runLeft;
-      player.frameX += 896;
-      if (player.frameX >= 9856) player.frameX = 0;
-      player.x -= 1.2;
+      player.x -= moveSpeed;
+      if (!animating) animate(52);
     }
+
+    // Screen Loop //
+    if (player.x > canvas.width + 0) player.x = -60;
+    if (player.x < -60) player.x = canvas.width + 0;
 
   }
 
+  var timeouts = [];
+
+  function animate(speed) {
+    var frame = 896;
+    animating = true;
+    timeouts.push(setTimeout(function(){
+      animating = false;
+      for (var i = 0; i < timeouts.length; i++) {
+        clearTimeout(timeouts[i]);
+        timeouts = [];
+      }
+    }, speed));
+    console.log(timeouts);
+    player.frameX += frame;
+    if (player.frameX >= player.sprite.width) player.frameX = 0;
+  }
+
+  //////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  // Animation Frame //
+  // This runs as fast as the monitors refresh rate //
+
   function run() {
     update();
-    draw();
+    render();
 
     requestAnimationFrame(run);
   }
 
+  // Initiates the animation frame loop//
   run();
 }
