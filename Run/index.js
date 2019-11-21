@@ -72,7 +72,8 @@ function startGame() {
     height: 960,
     frameX: 0,
     sprite: runRight,
-    animating: false
+    animating: false,
+    moveSpeed: 2
   };
 
   //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -88,50 +89,45 @@ function startGame() {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  // Sets the movespeed of all key directions //
-  var moveSpeed = 2;
-  // checks if an animation is playing //
-  var previousAnimation = idleRight;
+  // checks if an animation is playing /
+
+  var timeouts = [];
 
   function update() {
     // Key Controls //
 
-    // If unassigned keys are pressed, only idleRight animation is played//
-    // IDLE RIGHT //
+    // IDLE //
     if (!(68 in keysDown) && !(65 in keysDown)) {
-      if (player.sprite == runRight) {
+      if (player.sprite == runRight || player.sprite == runLeft) {
         player.animating = false;
-        player.frameX = 0;
+        player.frameX = 896;
+        if (player.sprite == runRight) player.sprite = idleRight;
+        if (player.sprite == runLeft) player.sprite = idleLeft;
       }
-      player.sprite = idleRight;
-      if (!player.animating) animate(1000);
+      if (!player.animating) {
+        animate(500);
+      }
     }
 
-    // IDLE LEFT //
-
-    // if (!(68 in keysDown) && !(65 in keysDown)) {
-    //   if (player.sprite == runLeft) player.animating = false;
-    //
-    // }
-
-    // If "D" is pressed, run right animation is played//
+    // RUN RIGHT //
     if (68 in keysDown) {
-      if (player.sprite == idleRight) {
+      if (player.sprite == idleRight || player.sprite == idleLeft) {
         player.animating = false;
-        player.frameX = 0;
+        player.frameX = runRight.width;
       }
-      previousAnimation = runRight;
       player.sprite = runRight;
-      player.x += moveSpeed;
+      player.x += player.moveSpeed;
       if (!player.animating) animate(52);
     }
 
-    // If "A" is pressed, run left animation is played//
+    // RUN LEFT //
     if (65 in keysDown) {
-      if (player.sprite == idleRight) player.animating = false;
-      previousAnimation = runLeft;
+      if (player.sprite == idleRight || player.sprite == idleLeft) {
+        player.animating = false;
+        player.frameX = runLeft.width;
+      }
       player.sprite = runLeft;
-      player.x -= moveSpeed;
+      player.x -= player.moveSpeed;
       if (!player.animating) animate(52);
     }
 
@@ -141,24 +137,22 @@ function startGame() {
 
   }
 
-  var timeouts = [];
-  var id = window.setTimeout(function() {}, 0);
-
   function animate(speed) {
     var frame = 896;
     player.animating = true;
-    timeouts.push(setTimeout(function(){
-      clearTimeouts();
-      player.animating = false;
+    clearTimeouts();
 
+    timeouts.push(setTimeout(function(){
+      player.animating = false;
+      console.log(speed);
     }, speed));
-    // console.log(keysDown);
+
     player.frameX += frame;
     if (player.frameX >= player.sprite.width) player.frameX = 0;
   }
 
   function clearTimeouts() {
-    for (var i = 0; i <= timeouts.length; i++) {
+    for (var i = 0; i < timeouts.length; i++) {
       clearTimeout(timeouts[i]);
     }
   }
@@ -180,8 +174,4 @@ function startGame() {
   //////////////////////////////////////////////////////////////////////////////////////////////////////
 
   // OPTIMISATION TOOLS //
-
-  setInterval(function() {
-    timeouts = [];
-  }, 1000);
 }
